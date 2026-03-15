@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql-data:/var/lib/mysql
+       - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  flask:
+    build: .
+    container_name: flask-app
+    restart: always
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_REGION: ${AWS_REGION}
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  apache2:
+    image: httpd:2.4
+    container_name: apache2
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./apache2/apache2.conf:/usr/local/apache2/conf/httpd.conf
+    depends_on:
+      - flask
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
