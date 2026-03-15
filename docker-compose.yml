@@ -39,12 +39,20 @@ services:
     restart: always
     ports:
       - "80:80"
-    volumes:
-      - ./apache2/apache2.conf:/usr/local/apache2/conf/httpd.conf
     depends_on:
       - flask
     networks:
       - app-network
+    command: >
+      /bin/sh -c "echo 'ServerName localhost' >> /usr/local/apache2/conf/httpd.conf &&
+      echo 'LoadModule proxy_module modules/mod_proxy.so' >> /usr/local/apache2/conf/httpd.conf &&
+      echo 'LoadModule proxy_http_module modules/mod_proxy_http.so' >> /usr/local/apache2/conf/httpd.conf &&
+      echo '<VirtualHost *:80>' >> /usr/local/apache2/conf/httpd.conf &&
+      echo 'ProxyPreserveHost On' >> /usr/local/apache2/conf/httpd.conf &&
+      echo 'ProxyPass / http://flask:5000/' >> /usr/local/apache2/conf/httpd.conf &&
+      echo 'ProxyPassReverse / http://flask:5000/' >> /usr/local/apache2/conf/httpd.conf &&
+      echo '</VirtualHost>' >> /usr/local/apache2/conf/httpd.conf &&
+      httpd-foreground"
 
 networks:
   app-network:
