@@ -34,18 +34,22 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo git config --global --add safe.directory /home/ubuntu/flask-task-manager-devops
             cd /home/ubuntu/flask-task-manager-devops
+            sudo chown -R ubuntu:ubuntu .
             git pull origin main
-            echo "MYSQL_HOST=mysql" > .env
-            echo "MYSQL_USER=root" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-            echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> .env
-            echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-            echo "SES_FROM_EMAIL=${{ secrets.SES_FROM_EMAIL }}" >> .env
-            echo "SES_TO_EMAIL=${{ secrets.SES_TO_EMAIL }}" >> .env
+            cat > .env << 'ENVEOF'
+            MYSQL_HOST=mysql
+            MYSQL_USER=root
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            SES_FROM_EMAIL=${{ secrets.SES_FROM_EMAIL }}
+            SES_TO_EMAIL=${{ secrets.SES_TO_EMAIL }}
+            ENVEOF
             docker-compose down
             docker-compose pull
-            docker-compose up -d
+            docker-compose up -d --build
