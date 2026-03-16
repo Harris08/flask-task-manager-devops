@@ -243,19 +243,22 @@ flask-task-manager-devops/
 ## 📸 Screenshots
 
 ### Task Manager UI
-> Add screenshot of the main UI here
+![UI](screenshots/ui.png)
 
-### S3 Bucket
-> Add screenshot of files in S3 here
+### S3 Bucket — File Storage
+![S3](screenshots/s3.png)
 
-### GitHub Actions CI/CD
-> Add screenshot of green pipeline here
+### S3 Versioning
+![S3 Versioning](screenshots/s3ver.png)
 
-### CloudWatch Dashboard
-> Add screenshot of monitoring dashboard here
+### GitHub Actions CI/CD Pipeline
+![CI/CD](screenshots/cicd.png)
 
-### TablePlus Database View
-> Add screenshot of TablePlus connected here
+### CloudWatch Monitoring Dashboard
+![CloudWatch](screenshots/cloudwatch.png)
+
+### TablePlus — Database View
+![TablePlus](screenshots/tableplus.png)
 
 ---
 
