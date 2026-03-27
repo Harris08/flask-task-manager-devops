@@ -49,6 +49,7 @@ jobs:
             AWS_REGION=${{ secrets.AWS_REGION }}
             SES_FROM_EMAIL=${{ secrets.SES_FROM_EMAIL }}
             SES_TO_EMAIL=${{ secrets.SES_TO_EMAIL }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
             ENVEOF
             docker-compose down
             docker-compose pull
