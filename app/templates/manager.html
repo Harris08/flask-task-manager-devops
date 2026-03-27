@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+{% block title %}Manager Dashboard — Task Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #f0f4ff; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    background: #fff;
+    border: 1.5px solid #dbeafe;
+    border-radius: 16px;
+    padding: 1.4rem 1.75rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    box-shadow: 0 2px 12px rgba(37,99,235,.07);
+    position: relative; overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, #1d4ed8, #3b82f6);
+    border-radius: 4px 0 0 4px;
+  }
+  .ph-left { display: flex; align-items: center; gap: .85rem; }
+  .ph-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; color: #fff;
+    box-shadow: 0 4px 14px rgba(37,99,235,.3);
+  }
+  .ph-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem; font-weight: 800; color: #0f172a;
+    margin: 0; line-height: 1.2;
+  }
+  .ph-sub { font-size: .8rem; color: #64748b; margin-top: .2rem; }
+  .ph-badge {
+    background: #eff6ff; border: 1.5px solid #bfdbfe;
+    border-radius: 20px; padding: 4px 14px;
+    font-size: .72rem; font-weight: 700; color: #1d4ed8;
+    text-transform: uppercase; letter-spacing: .5px;
+    display: flex; align-items: center; gap: .35rem;
+  }
+
+  /* ── STAT CARDS ROW ── */
+  .stats-row { margin-bottom: 1.5rem; }
+  .stat-card {
+    background: #fff; border: 1.5px solid #dbeafe;
+    border-radius: 14px; padding: 1.1rem 1.25rem;
+    display: flex; align-items: center; gap: .9rem;
+    box-shadow: 0 2px 10px rgba(37,99,235,.06);
+    transition: transform .2s, box-shadow .2s;
+    height: 100%;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,99,235,.13); }
+  .stat-icon { width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+  .si-blue   { background:#eff6ff; color:#2563eb; }
+  .si-amber  { background:#fffbeb; color:#d97706; }
+  .si-green  { background:#f0fdf4; color:#16a34a; }
+  .si-red    { background:#fff1f2; color:#dc2626; }
+  .stat-label { font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.4px; }
+  .stat-value { font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#0f172a;line-height:1.1; }
+
+  /* ── SECTION CARD ── */
+  .s-card {
+    background: #fff; border: 1.5px solid #dbeafe;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(37,99,235,.06);
+    overflow: hidden; margin-bottom: 1.5rem;
+  }
+  .s-head {
+    background: linear-gradient(90deg, #eff6ff, #fff);
+    border-bottom: 1.5px solid #dbeafe;
+    padding: .9rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .5rem;
+  }
+  .s-head-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: .92rem; color: #1e40af;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .s-head-title .cnt-badge {
+    background: #dbeafe; color: #1d4ed8;
+    font-size: .7rem; font-weight: 700;
+    padding: 2px 9px; border-radius: 20px;
+  }
+  .s-body { padding: 1.25rem; }
+
+  /* ── ADD TASK FORM ── */
+  .form-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem;
+  }
+  @media(max-width:640px){ .form-row-grid { grid-template-columns: 1fr; } }
+
+  .form-label {
+    font-size: .78rem; font-weight: 700; color: #334155;
+    text-transform: uppercase; letter-spacing: .4px; margin-bottom: .32rem;
+  }
+  .form-control, .form-select {
+    border: 1.5px solid #cbd5e1; border-radius: 9px;
+    padding: .56rem .8rem; font-size: .875rem;
+    font-family: 'DM Sans', sans-serif;
+    background: #f8faff; color: #0f172a;
+    transition: all .2s; outline: none; width: 100%;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #2563eb; background: #fff;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+  }
+  .form-control::placeholder { color: #94a3b8; }
+  textarea.form-control { resize: vertical; min-height: 70px; }
+
+  /* file input */
+  .file-input-wrap {
+    border: 2px dashed #bfdbfe; border-radius: 10px;
+    background: #f8faff; padding: .65rem .85rem;
+    display: flex; align-items: center; gap: .6rem;
+    cursor: pointer; transition: border-color .2s, background .2s;
+  }
+  .file-input-wrap:hover { border-color: #2563eb; background: #eff6ff; }
+  .file-input-wrap i { color: #3b82f6; font-size: 1.1rem; }
+  .file-input-wrap span { font-size: .82rem; color: #64748b; }
+  .file-input-wrap input[type="file"] { display: none; }
+
+  /* add task btn */
+  .btn-add-task {
+    display: inline-flex; align-items: center; gap: .45rem;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb, #3b82f6);
+    color: #fff; border: none; border-radius: 10px;
+    padding: .62rem 1.4rem; font-family: 'Syne', sans-serif;
+    font-size: .9rem; font-weight: 700; cursor: pointer;
+    transition: all .2s; box-shadow: 0 4px 14px rgba(37,99,235,.35);
+    white-space: nowrap;
+  }
+  .btn-add-task:hover { transform: translateY(-1px); filter: brightness(1.07); box-shadow: 0 7px 20px rgba(37,99,235,.4); }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap { position: relative; max-width: 280px; }
+  .search-wrap i {
+    position: absolute; left: .8rem; top: 50%;
+    transform: translateY(-50%);
+    color: #93c5fd; font-size: .9rem; pointer-events: none;
+  }
+  .search-wrap input {
+    width: 100%; padding: .52rem .8rem .52rem 2.3rem;
+    border: 1.5px solid #dbeafe; border-radius: 9px;
+    font-size: .84rem; background: #f8faff;
+    font-family: 'DM Sans', sans-serif; outline: none;
+    transition: all .2s;
+  }
+  .search-wrap input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .search-wrap input::placeholder { color: #94a3b8; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  .table { font-size: .855rem; border-collapse: separate; border-spacing: 0; width: 100%; }
+  .table thead th {
+    background: linear-gradient(90deg, #eff6ff, #f8faff);
+    font-weight: 700; font-size: .7rem;
+    text-transform: uppercase; letter-spacing: .5px;
+    color: #1d4ed8; border-bottom: 2px solid #dbeafe;
+    padding: .75rem 1rem; white-space: nowrap;
+  }
+  .table tbody td {
+    padding: .78rem 1rem; vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9; color: #334155;
+  }
+  .table tbody tr:last-child td { border-bottom: none; }
+  .table tbody tr:hover td { background: #f8faff; }
+
+  .task-title-cell { font-weight: 600; color: #0f172a; }
+  .task-desc-cell  { font-size: .8rem; color: #64748b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* status badges */
+  .badge-pending { background:#fffbeb;color:#d97706;border:1px solid #fde68a;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+  .badge-done    { background:#f0fdf4;color:#16a34a;border:1px solid #86efac;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+  .badge-redo    { background:#fff1f2;color:#9f1239;border:1px solid #fca5a5;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+
+  /* action buttons */
+  .act-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid transparent; cursor: pointer;
+    font-size: .88rem; transition: all .2s; text-decoration: none;
+    background: none;
+  }
+  .act-approve { border-color: #86efac; color: #16a34a; background: #f0fdf4; }
+  .act-approve:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .act-redo    { border-color: #fde68a; color: #d97706; background: #fffbeb; }
+  .act-redo:hover { background: #d97706; color: #fff; border-color: #d97706; }
+  .act-delete  { border-color: #fca5a5; color: #dc2626; background: #fff1f2; }
+  .act-delete:hover { background: #9f1239; color: #fff; border-color: #9f1239; }
+
+  /* assigned chip */
+  .assigned-chip {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 20px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 600; color: #1d4ed8;
+  }
+  .assigned-chip .av {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .58rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+
+  /* empty state */
+  .empty-state {
+    text-align: center; padding: 3.5rem 1rem;
+  }
+  .empty-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: #eff6ff; border: 1.5px solid #dbeafe;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; margin: 0 auto 1rem;
+  }
+  .empty-state h6 { font-family:'Syne',sans-serif;font-weight:700;color:#334155;margin-bottom:.4rem; }
+  .empty-state p  { font-size:.82rem;color:#94a3b8;margin:0; }
+
+  /* ── CREATE EMPLOYEE ── */
+  .emp-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: .85rem; align-items: end;
+  }
+  @media(max-width:600px){ .emp-form-grid{ grid-template-columns:1fr; } }
+
+  .btn-create-emp {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: #fff; border: 1.5px solid #2563eb;
+    color: #2563eb; border-radius: 10px;
+    padding: .58rem 1.1rem; font-family: 'Syne', sans-serif;
+    font-size: .88rem; font-weight: 700; cursor: pointer;
+    transition: all .2s; white-space: nowrap;
+  }
+  .btn-create-emp:hover { background: #2563eb; color: #fff; }
+
+  /* divider */
+  .s-divider { height:1px;background:#f1f5f9;margin:1rem 0; }
+
+  /* tooltip hint */
+  .hint-text { font-size:.75rem;color:#94a3b8;margin-top:.3rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header">
+  <div class="ph-left">
+    <div class="ph-icon"><i class="bi bi-speedometer2"></i></div>
+    <div>
+      <h1 class="ph-title">Manager Dashboard</h1>
+      <div class="ph-sub">Manage tasks, employees and monitor progress</div>
+    </div>
+  </div>
+  <div class="ph-badge">
+    <i class="bi bi-person-badge-fill"></i> Manager Access
+  </div>
+</div>
+
+<!-- ── STATS ROW ── -->
+<div class="row g-3 stats-row">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon si-blue"><i class="bi bi-list-task"></i></div>
+      <div>
+        <div class="stat-label">Total Tasks</div>
+        <div class="stat-value">{{ tasks|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon si-amber"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">{{ tasks|selectattr('status','equalto','pending')|list|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon si-green"><i class="bi bi-check-circle-fill"></i></div>
+      <div>
+        <div class="stat-label">Done</div>
+        <div class="stat-value">{{ tasks|selectattr('status','equalto','done')|list|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon si-red"><i class="bi bi-arrow-repeat"></i></div>
+      <div>
+        <div class="stat-label">Redo</div>
+        <div class="stat-value">{{ tasks|selectattr('status','equalto','redo')|list|length }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD NEW TASK ── -->
+<div class="s-card">
+  <div class="s-head">
+    <div class="s-head-title">
+      <i class="bi bi-plus-circle-fill"></i> Add New Task
+    </div>
+  </div>
+  <div class="s-body">
+    <form method="POST" action="{{ url_for('add_task') }}" enctype="multipart/form-data" novalidate>
+      <div class="form-row-grid">
+
+        <div>
+          <label class="form-label">Assign To</label>
+          <select name="assigned_to" class="form-select" required>
+            <option value="" disabled selected>Select employee…</option>
+            {% for emp in employees %}
+            <option value="{{ emp.id }}">{{ emp.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Task Title</label>
+          <input type="text" name="title" class="form-control"
+                 placeholder="e.g. Fix EC2 deployment" required/>
+        </div>
+
+        <div>
+          <label class="form-label">Description</label>
+          <input type="text" name="description" class="form-control"
+                 placeholder="Brief task description (optional)"/>
+        </div>
+
+        <div>
+          <label class="form-label">Attachment</label>
+          <label class="file-input-wrap" for="taskFile">
+            <i class="bi bi-paperclip"></i>
+            <span id="fileName">Choose file…</span>
+            <input type="file" id="taskFile" name="file"
+                   onchange="document.getElementById('fileName').textContent = this.files[0]?.name || 'Choose file…'"/>
+          </label>
+        </div>
+
+      </div>
+
+      <div class="d-flex justify-content-end mt-3">
+        <button type="submit" class="btn-add-task">
+          <i class="bi bi-plus-lg"></i> Add Task
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── ALL TASKS TABLE ── -->
+<div class="s-card">
+  <div class="s-head">
+    <div class="s-head-title">
+      <i class="bi bi-table"></i> All Tasks
+      <span class="cnt-badge">{{ tasks|length }}</span>
+    </div>
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="taskSearch" placeholder="Search tasks…" oninput="filterTable()"/>
+    </div>
+  </div>
+  <div class="s-body" style="padding:0;">
+    <div class="table-wrap">
+      {% if tasks %}
+      <table class="table" id="taskTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>File</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          <tr>
+            <td style="color:#94a3b8;font-size:.78rem;font-weight:600;">{{ loop.index }}</td>
+            <td class="task-title-cell">{{ task.title }}</td>
+            <td class="task-desc-cell">{{ task.description or '—' }}</td>
+            <td>
+              {% if task.assigned_name %}
+              <div class="assigned-chip">
+                <div class="av">{{ task.assigned_name[0].upper() }}</div>
+                {{ task.assigned_name }}
+              </div>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if task.status == 'done' %}
+                <span class="badge-done">✅ Done</span>
+              {% elif task.status == 'redo' %}
+                <span class="badge-redo">🔄 Redo</span>
+              {% else %}
+                <span class="badge-pending">⏳ Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if task.s3_file_key %}
+                <a href="{{ url_for('download_file', task_id=task.id) }}"
+                   class="act-btn act-approve" title="Download file"
+                   style="width:auto;padding:4px 10px;font-size:.75rem;border-radius:7px;gap:.3rem;">
+                  <i class="bi bi-paperclip"></i> File
+                </a>
+              {% else %}
+                <span style="color:#cbd5e1;font-size:.78rem;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1 align-items-center">
+                {% if task.status == 'pending' %}
+                <a href="{{ url_for('approve_task', task_id=task.id) }}"
+                   class="act-btn act-approve" title="Approve task">
+                  <i class="bi bi-check-lg"></i>
+                </a>
+                <a href="{{ url_for('redo_task', task_id=task.id) }}"
+                   class="act-btn act-redo" title="Request redo">
+                  <i class="bi bi-arrow-repeat"></i>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('delete_task', task_id=task.id) }}"
+                   class="act-btn act-delete" title="Delete task"
+                   onclick="return confirm('Delete this task?')">
+                  <i class="bi bi-trash3"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+        <h6>No tasks yet</h6>
+        <p>Add your first task using the form above</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE EMPLOYEE ── -->
+<div class="s-card">
+  <div class="s-head">
+    <div class="s-head-title">
+      <i class="bi bi-person-plus-fill"></i> Create Employee Account
+    </div>
+  </div>
+  <div class="s-body">
+    <form method="POST" action="{{ url_for('create_employee') }}" novalidate>
+      <div class="emp-form-grid">
+
+        <div>
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control"
+                 placeholder="e.g. Naveen Kumar" required/>
+        </div>
+
+        <div>
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control"
+                 placeholder="naveen@example.com" required/>
+          <div class="hint-text"><i class="bi bi-info-circle me-1"></i>Login credentials will be sent via AWS SES</div>
+        </div>
+
+        <div>
+          <button type="submit" class="btn-create-emp">
+            <i class="bi bi-person-plus"></i> Create
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- existing employees list -->
+    {% if employees %}
+    <div class="s-divider"></div>
+    <div class="s-head-title mb-2" style="font-size:.82rem;">
+      <i class="bi bi-people-fill"></i> Team Members
+      <span class="cnt-badge">{{ employees|length }}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for emp in employees %}
+      <div style="display:inline-flex;align-items:center;gap:.5rem;background:#f8faff;border:1.5px solid #dbeafe;border-radius:10px;padding:6px 12px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;">
+          {{ emp.name[0].upper() }}
+        </div>
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:#0f172a;line-height:1.2;">{{ emp.name }}</div>
+          <div style="font-size:.72rem;color:#64748b;">{{ emp.email }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function filterTable(){
+    const q = document.getElementById('taskSearch').value.toLowerCase();
+    document.querySelectorAll('#taskTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+</script>
+{% endblock %}

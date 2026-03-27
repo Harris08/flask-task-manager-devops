@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% block title %}My Tasks — Task Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #f0f4ff; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    background: #fff;
+    border: 1.5px solid #dbeafe;
+    border-radius: 16px;
+    padding: 1.4rem 1.75rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    box-shadow: 0 2px 12px rgba(37,99,235,.07);
+    position: relative; overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, #16a34a, #22c55e, #86efac);
+    border-radius: 4px 0 0 4px;
+  }
+  .ph-left { padding-left: .5rem; }
+  .ph-greeting { font-size: .8rem; font-weight: 600; color: #16a34a; text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem; }
+  .ph-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: .15rem; }
+  .ph-sub { font-size: .82rem; color: #64748b; }
+  .ph-badge {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #fff; border-radius: 10px; padding: .55rem 1.1rem;
+    font-size: .8rem; font-weight: 700;
+    display: flex; align-items: center; gap: .4rem;
+    box-shadow: 0 4px 12px rgba(22,163,74,.3);
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width:640px){ .stats-row { grid-template-columns: 1fr; } }
+
+  /* ── SECTION CARD ── */
+  .s-card {
+    background: #fff; border: 1.5px solid #dbeafe;
+    border-radius: 16px; box-shadow: 0 2px 12px rgba(37,99,235,.06);
+    overflow: hidden; margin-bottom: 1.5rem;
+  }
+  .s-head {
+    background: linear-gradient(90deg, #eff6ff, #fff);
+    border-bottom: 1.5px solid #dbeafe;
+    padding: .9rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem;
+  }
+  .s-head-title {
+    font-family: 'Syne', sans-serif; font-size: .92rem; font-weight: 800; color: #1e40af;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .s-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg,#2563eb,#3b82f6);
+    color: #fff; font-size: .8rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; max-width: 240px; }
+  .search-wrap i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: #93c5fd; font-size: .9rem; pointer-events: none; }
+  .search-input {
+    padding: .48rem .75rem .48rem 2.2rem; border: 1.5px solid #dbeafe;
+    border-radius: 9px; font-size: .84rem; font-family: 'DM Sans', sans-serif;
+    background: #f8faff; color: #0f172a; width: 100%; outline: none; transition: all .2s;
+  }
+  .search-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .search-input::placeholder { color: #94a3b8; }
+
+  /* ── COUNT CHIP ── */
+  .count-chip { background:#dbeafe;color:#1e40af;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px; }
+
+  /* ── TASK CARDS (mobile-friendly) ── */
+  .task-list { display: flex; flex-direction: column; gap: .75rem; padding: 1.25rem; }
+
+  .task-item {
+    background: #f8faff;
+    border: 1.5px solid #dbeafe;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .task-item:hover { box-shadow: 0 4px 16px rgba(37,99,235,.1); transform: translateY(-1px); }
+  .task-item.status-redo { border-color: #fda4af; background: #fff8f8; }
+  .task-item.status-done { border-color: #86efac; background: #f8fff9; opacity: .85; }
+
+  .task-left { flex: 1; min-width: 0; }
+
+  .task-num {
+    font-size: .7rem; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: .3rem;
+  }
+  .task-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .97rem; font-weight: 700; color: #0f172a;
+    margin-bottom: .25rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task-desc {
+    font-size: .8rem; color: #64748b; margin-bottom: .6rem;
+    line-height: 1.45;
+  }
+  .task-meta {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  }
+
+  /* status badges */
+  .badge-pending { background:#fffbeb;color:#d97706;border:1px solid #fde68a;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+  .badge-done    { background:#f0fdf4;color:#16a34a;border:1px solid #86efac;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+  .badge-redo    { background:#fff1f2;color:#9f1239;border:1px solid #fda4af;font-size:.7rem;font-weight:700;padding:3px 11px;border-radius:20px;white-space:nowrap; }
+
+  /* redo alert strip */
+  .redo-strip {
+    display: flex; align-items: center; gap: .4rem;
+    background: #fff1f2; border: 1px solid #fda4af;
+    border-radius: 7px; padding: 4px 10px;
+    font-size: .75rem; font-weight: 600; color: #9f1239;
+  }
+
+  /* task right actions */
+  .task-right {
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: .5rem; flex-shrink: 0;
+  }
+
+  .task-actions { display: flex; gap: .4rem; align-items: center; }
+
+  .act-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    border-radius: 8px; border: 1.5px solid;
+    font-size: .78rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    padding: 5px 12px; cursor: pointer; text-decoration: none;
+    transition: all .2s; background: none; white-space: nowrap;
+  }
+  .act-file   { border-color:#93c5fd;color:#2563eb;background:#eff6ff; }
+  .act-file:hover { background:#2563eb;color:#fff;border-color:#2563eb; }
+  .act-done   { border-color:#86efac;color:#16a34a;background:#f0fdf4; }
+  .act-done:hover { background:#16a34a;color:#fff;border-color:#16a34a; }
+
+  /* uploaded file indicator */
+  .file-tag {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: #f0fdf4; border: 1px solid #86efac;
+    border-radius: 6px; padding: 3px 9px;
+    font-size: .72rem; font-weight: 600; color: #16a34a;
+  }
+
+  /* empty state */
+  .empty-state { text-align: center; padding: 3.5rem 1rem; }
+  .empty-icon { width:60px;height:60px;background:#eff6ff;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1rem;color:#3b82f6; }
+  .empty-state h6 { font-weight:700;color:#334155;margin-bottom:.3rem; }
+  .empty-state p { font-size:.82rem;color:#94a3b8;margin:0; }
+
+  /* ── UPLOAD MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.45); backdrop-filter: blur(4px);
+    z-index: 500; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff; border: 1.5px solid #dbeafe;
+    border-radius: 16px; padding: 1.75rem;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 16px 48px rgba(37,99,235,.18);
+    animation: mIn .25s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes mIn { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:none;} }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 800;
+    color: #0f172a; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .modal-title i { color: #2563eb; }
+
+  .file-drop {
+    border: 2px dashed #93c5fd; border-radius: 10px;
+    background: #f0f8ff; padding: 1.5rem;
+    text-align: center; cursor: pointer; transition: all .2s;
+    margin-bottom: 1rem; position: relative;
+  }
+  .file-drop:hover { border-color: #2563eb; background: #eff6ff; }
+  .file-drop i { font-size: 1.75rem; color: #3b82f6; display: block; margin-bottom: .4rem; }
+  .file-drop span { font-size: .83rem; color: #64748b; }
+  .file-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .file-name-tag {
+    display: none; align-items: center; gap: .4rem;
+    background: #f0fdf4; border: 1px solid #86efac;
+    border-radius: 7px; padding: 5px 10px;
+    font-size: .8rem; font-weight: 600; color: #16a34a;
+    margin-bottom: 1rem;
+  }
+  .file-name-tag.show { display: flex; }
+
+  .modal-btns { display: flex; gap: .6rem; justify-content: flex-end; }
+  .btn-cancel {
+    background: none; border: 1.5px solid #cbd5e1; border-radius: 8px;
+    padding: .5rem 1rem; font-size: .84rem; font-weight: 600; color: #64748b;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-cancel:hover { background: #f1f5f9; }
+  .btn-upload {
+    background: linear-gradient(135deg,#1d4ed8,#2563eb,#3b82f6);
+    border: none; border-radius: 8px;
+    padding: .5rem 1.1rem; font-size: .84rem; font-weight: 700;
+    font-family: 'Syne', sans-serif; color: #fff;
+    cursor: pointer; transition: all .2s;
+    box-shadow: 0 4px 12px rgba(37,99,235,.3);
+    display: flex; align-items: center; gap: .35rem;
+  }
+  .btn-upload:hover { filter:brightness(1.07); transform:translateY(-1px); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="ph-left">
+    <div class="ph-greeting"><i class="bi bi-person-workspace me-1"></i>Employee Dashboard</div>
+    <div class="ph-title">My Tasks, {{ current_user.name.split()[0] }} 👋</div>
+    <div class="ph-sub">View and complete your assigned tasks</div>
+  </div>
+  <div class="ph-badge"><i class="bi bi-person-fill"></i> Employee</div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="bi bi-list-task"></i></div>
+    <div>
+      <div class="stat-label">My Tasks</div>
+      <div class="stat-value" style="color:#1d4ed8;">{{ tasks|length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+    <div>
+      <div class="stat-label">Pending</div>
+      <div class="stat-value" style="color:#d97706;">{{ tasks|selectattr('status','equalto','pending')|list|length }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+    <div>
+      <div class="stat-label">Done</div>
+      <div class="stat-value" style="color:#16a34a;">{{ tasks|selectattr('status','equalto','done')|list|length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- MY TASKS -->
+<div class="s-card">
+  <div class="s-head">
+    <div class="s-head-title">
+      <div class="s-icon"><i class="bi bi-kanban-fill"></i></div>
+      My Tasks
+      <span class="count-chip">{{ tasks|length }}</span>
+    </div>
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" class="search-input" placeholder="Search tasks…" oninput="searchTasks(this.value)"/>
+    </div>
+  </div>
+
+  {% if tasks %}
+  <div class="task-list" id="taskList">
+    {% for task in tasks %}
+    <div class="task-item status-{{ task.status }}" data-title="{{ task.title|lower }}" data-desc="{{ (task.description or '')|lower }}">
+
+      <div class="task-left">
+        <div class="task-num">Task #{{ loop.index }}</div>
+        <div class="task-title">{{ task.title }}</div>
+        {% if task.description %}
+        <div class="task-desc">{{ task.description }}</div>
+        {% endif %}
+        <div class="task-meta">
+          {% if task.status == 'pending' %}
+            <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+          {% elif task.status == 'done' %}
+            <span class="badge-done"><i class="bi bi-check-circle-fill me-1"></i>Done</span>
+          {% elif task.status == 'redo' %}
+            <span class="badge-redo"><i class="bi bi-arrow-repeat me-1"></i>Redo</span>
+          {% endif %}
+
+          {% if task.status == 'redo' %}
+          <div class="redo-strip">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            Manager requested corrections
+          </div>
+          {% endif %}
+
+          {% if task.s3_file_key %}
+          <div class="file-tag"><i class="bi bi-paperclip"></i> File attached</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="task-right">
+        <div class="task-actions">
+          {% if task.status != 'done' %}
+            <!-- Upload file -->
+            <button type="button" class="act-btn act-file"
+              onclick="openUpload({{ task.id }}, '{{ task.title }}')">
+              <i class="bi bi-paperclip"></i> Upload
+            </button>
+            <!-- Mark done -->
+            <a href="{{ url_for('complete_task', task_id=task.id) }}"
+               class="act-btn act-done"
+               onclick="return confirm('Mark \'{{ task.title }}\' as done?')">
+              <i class="bi bi-check-lg"></i> Mark Done
+            </a>
+          {% else %}
+            <span style="font-size:.78rem;color:#94a3b8;font-style:italic;">
+              <i class="bi bi-clock-history me-1"></i>Awaiting approval
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+    <h6>No tasks assigned yet</h6>
+    <p>Your manager will assign tasks to you soon</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- ── UPLOAD MODAL ── -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <i class="bi bi-cloud-arrow-up-fill"></i>
+      Upload File
+    </div>
+    <p style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">
+      Attaching file to: <strong id="modalTaskName" style="color:#0f172a;"></strong>
+    </p>
+
+    <form method="POST" id="uploadForm" enctype="multipart/form-data">
+      <div class="file-drop" id="fileDrop">
+        <i class="bi bi-cloud-upload"></i>
+        <span>Click or drag a file here</span>
+        <input type="file" name="file" id="fileInput" required onchange="showFileName(this)"/>
+      </div>
+      <div class="file-name-tag" id="fileNameTag">
+        <i class="bi bi-file-earmark-check-fill"></i>
+        <span id="fileNameText"></span>
+      </div>
+      <div class="modal-btns">
+        <button type="button" class="btn-cancel" onclick="closeUpload()">Cancel</button>
+        <button type="submit" class="btn-upload">
+          <i class="bi bi-cloud-arrow-up"></i> Upload
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function searchTasks(val){
+    val = val.toLowerCase();
+    document.querySelectorAll('#taskList .task-item').forEach(item=>{
+      const match = item.dataset.title.includes(val) || item.dataset.desc.includes(val);
+      item.style.display = match ? '' : 'none';
+    });
+  }
+
+  function openUpload(taskId, taskTitle){
+    document.getElementById('modalTaskName').textContent = taskTitle;
+    document.getElementById('uploadForm').action = '/upload/' + taskId;
+    document.getElementById('fileNameTag').classList.remove('show');
+    document.getElementById('fileInput').value = '';
+    document.getElementById('uploadModal').classList.add('open');
+  }
+
+  function closeUpload(){
+    document.getElementById('uploadModal').classList.remove('open');
+  }
+
+  function showFileName(input){
+    if(input.files.length){
+      document.getElementById('fileNameText').textContent = input.files[0].name;
+      document.getElementById('fileNameTag').classList.add('show');
+    }
+  }
+
+  // close modal on overlay click
+  document.getElementById('uploadModal').addEventListener('click', function(e){
+    if(e.target === this) closeUpload();
+  });
+</script>
+{% endblock %}

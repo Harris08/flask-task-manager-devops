@@ -1,7 +1,7 @@
 # 🗂️ Flask Task Manager — DevOps Project
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![Flask](https://img.shields.io/badge/Flask-2.x-black?logo=flask)
+![Flask](https://img.shields.io/badge/Flask-3.x-black?logo=flask)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
 ![AWS](https://img.shields.io/badge/AWS-EC2%20%7C%20S3%20%7C%20Lambda%20%7C%20SES-FF9900?logo=amazonaws)
 ![Apache](https://img.shields.io/badge/Apache2-Reverse%20Proxy-D22128?logo=apache)
@@ -9,7 +9,7 @@
 ![CI/CD](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions)
 ![CloudWatch](https://img.shields.io/badge/CloudWatch-Monitoring-FF4F8B?logo=amazonaws)
 
-A full-stack **Task Manager web application** built with Flask and deployed on AWS using DevOps best practices — Docker, CI/CD, serverless functions, cloud storage, and real-time monitoring.
+A full-stack **role-based Task Manager web application** built with Flask, featuring user authentication, manager/employee workflows, AWS SES email notifications, S3 file storage, and deployed on AWS using DevOps best practices — Docker, CI/CD, serverless functions, and real-time monitoring.
 
 > 🔗 **Live App:** http://13.203.97.210
 > 📦 **Repo:** https://github.com/Harris08/flask-task-manager-devops
@@ -26,9 +26,15 @@ Developer
     │       ▼
     │   GitHub Actions (CI/CD)
     │       │
+    │       ├── Checkout Code
     │       ├── Build Docker Image
     │       ├── Push to Docker Hub
     │       └── Deploy to EC2 via SSH
+    │               ├── git pull origin main
+    │               ├── Write .env from Secrets
+    │               ├── docker-compose down
+    │               ├── docker-compose pull
+    │               └── docker-compose up -d --build
     │
     ▼
 AWS EC2 (t2.micro) — Ubuntu 22.04
@@ -39,12 +45,16 @@ AWS EC2 (t2.micro) — Ubuntu 22.04
             │       └── Proxy Pass → Flask
             │
             ├── Flask App Container (Port 5000)
-            │       ├── Task CRUD operations
-            │       ├── File upload → S3
-            │       └── Presigned URL download
+            │       ├── User Authentication (Flask-Login)
+            │       ├── Role-based Access (Manager / Employee)
+            │       ├── Task CRUD + Assign / Approve / Redo workflow
+            │       ├── Employee account creation with temp password
+            │       ├── File upload → S3 (presigned URL download)
+            │       ├── Password reset via email token
+            │       └── 5 styled HTML email notifications via SES
             │
             └── MySQL 8.0 Container (Port 3306)
-                    └── taskdb database
+                    └── taskdb database (users + tasks tables)
 
 AWS Services
     ├── S3 Bucket (hari-taskmanager-bucket)
@@ -52,10 +62,12 @@ AWS Services
     │
     ├── Lambda (task-file-processor)
     │       ├── Triggered by S3 PUT event
-    │       └── Sends email via SES on upload
+    │       └── Sends plain-text email via SES on upload
     │
     ├── SES (Simple Email Service)
-    │       └── Email notifications on file upload
+    │       ├── Lambda: file upload notification
+    │       └── Flask: welcome, task assigned, task approved,
+    │               task redo, password reset emails
     │
     ├── CloudWatch
     │       └── Monitoring dashboard (CPU, Network, Lambda)
@@ -68,13 +80,20 @@ AWS Services
 
 ## ✨ Features
 
-- ✅ **Create tasks** with title, description, and file attachment
-- ✅ **File upload** to AWS S3 with timestamp-based naming
-- ✅ **Presigned URL download** — secure, time-limited file access
-- ✅ **Mark tasks as complete** or delete them
-- ✅ **Email notification** via AWS SES on every file upload
-- ✅ **MySQL database** for persistent task storage
-- ✅ **Responsive UI** built with Bootstrap 5
+- ✅ **User authentication** — login, logout, password change, forgot/reset password via SES email
+- ✅ **Role-based access** — Manager and Employee dashboards with separate permissions
+- ✅ **First-login password change** — employees must change temp password on first sign-in
+- ✅ **Manager creates employees** — auto-generates temp password, sends welcome email via SES
+- ✅ **Task assignment** — manager assigns tasks to specific employees with title, description, and optional file
+- ✅ **Task workflow** — manager can approve tasks or send them back for redo
+- ✅ **Employee task view** — employees see only their assigned tasks
+- ✅ **Mark tasks as done** — employees can mark tasks complete; managers can delete tasks
+- ✅ **File upload to S3** — both manager (on task creation) and employee (on their tasks)
+- ✅ **Presigned URL download** — secure, time-limited file access from S3
+- ✅ **5 styled HTML email notifications** — welcome, task assigned, task approved, task redo, password reset
+- ✅ **Lambda email notification** — separate plain-text email triggered on S3 file upload
+- ✅ **MySQL database** — persistent storage for users and tasks
+- ✅ **Responsive UI** — built with Bootstrap 5, Bootstrap Icons, Google Fonts (DM Sans, Syne)
 
 ---
 
@@ -82,34 +101,37 @@ AWS Services
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Python 3.11, Flask |
-| **Database** | MySQL 8.0 |
-| **Frontend** | HTML, Bootstrap 5, Jinja2 |
+| **Backend** | Python 3.11, Flask 3.0, Flask-Login |
+| **Database** | MySQL 8.0 (via PyMySQL) |
+| **Frontend** | HTML, Bootstrap 5, Bootstrap Icons, Jinja2, Google Fonts |
+| **Auth** | Werkzeug (password hashing), Flask-Login (session management) |
 | **Containerization** | Docker, Docker Compose |
-| **Reverse Proxy** | Apache2 (httpd) |
+| **Reverse Proxy** | Apache2 (httpd 2.4) |
 | **Cloud Provider** | AWS (ap-south-1) |
 | **File Storage** | AWS S3 |
 | **Serverless** | AWS Lambda (Python 3.11) |
-| **Email** | AWS SES |
+| **Email** | AWS SES (from Flask + Lambda) |
 | **Monitoring** | AWS CloudWatch |
 | **CI/CD** | GitHub Actions |
 | **DB Admin** | TablePlus (SSH Tunnel) |
-| **IaC** | Docker Compose |
 
 ---
 
 ## 🚀 CI/CD Pipeline
 
 ```
-git push → GitHub Actions triggered
+git push (main) → GitHub Actions triggered
                │
                ├── 1. Checkout code
-               ├── 2. Build Docker image
-               ├── 3. Push to Docker Hub
-               └── 4. SSH into EC2
-                       ├── docker-compose pull
+               ├── 2. Login to Docker Hub
+               ├── 3. Build Docker image
+               ├── 4. Push to Docker Hub
+               └── 5. SSH into EC2
+                       ├── git pull origin main
+                       ├── Write .env from GitHub Secrets
                        ├── docker-compose down
-                       └── docker-compose up -d
+                       ├── docker-compose pull
+                       └── docker-compose up -d --build
 ```
 
 **Pipeline runs in ~48 seconds** ⚡
@@ -122,8 +144,8 @@ git push → GitHub Actions triggered
 |---|---|---|
 | EC2 t2.micro | Application server | ap-south-1 |
 | S3 Bucket | File attachments storage | ap-south-1 |
-| Lambda | Serverless file processor | ap-south-1 |
-| SES | Email notifications | ap-south-1 |
+| Lambda | Serverless file upload notifier | ap-south-1 |
+| SES | Email notifications (5 from Flask + 1 from Lambda) | ap-south-1 |
 | CloudWatch | Monitoring & alerting | ap-south-1 |
 | IAM | Access management | Global |
 
@@ -142,14 +164,29 @@ The `flask-task-manager-dashboard` monitors:
 ## 🗄️ Database Schema
 
 ```sql
+CREATE TABLE users (
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    name                VARCHAR(100) NOT NULL,
+    email               VARCHAR(150) NOT NULL UNIQUE,
+    password_hash       VARCHAR(255) NOT NULL,
+    role                ENUM('manager', 'employee') DEFAULT 'employee',
+    is_first_login      BOOLEAN DEFAULT TRUE,
+    reset_token         VARCHAR(255),
+    reset_token_expires DATETIME,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE tasks (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    title       VARCHAR(255) NOT NULL,
+    title       VARCHAR(200) NOT NULL,
     description TEXT,
-    created_by  VARCHAR(100),
-    status      ENUM('pending', 'complete') DEFAULT 'pending',
+    assigned_to INT,
+    created_by  INT,
+    status      ENUM('pending', 'done', 'redo') DEFAULT 'pending',
     s3_file_key VARCHAR(500),
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (assigned_to) REFERENCES users(id),
+    FOREIGN KEY (created_by)  REFERENCES users(id)
 );
 ```
 
@@ -205,6 +242,9 @@ http://localhost
 - S3 bucket is **private** — files accessed via presigned URLs only
 - AWS credentials stored as **GitHub Secrets** (never hardcoded)
 - TablePlus connects via **SSH tunnel** — no direct DB exposure
+- Passwords hashed with **Werkzeug** (PBKDF2) — never stored in plain text
+- Password reset tokens **expire after 30 minutes**
+- First-login **forced password change** for new employees
 
 ---
 
@@ -213,21 +253,32 @@ http://localhost
 ```
 flask-task-manager-devops/
 ├── app/
-│   ├── app.py              # Flask application
+│   ├── app.py                  # Flask application (auth, routes, SES emails)
+│   ├── __init__.py             # Package init
+│   ├── init.sql                # Database initialization
 │   ├── templates/
-│   │   └── index.html      # Frontend UI
-│   └── init.sql            # Database initialization
+│   │   ├── base.html           # Base layout template
+│   │   ├── login.html          # Login page
+│   │   ├── manager.html        # Manager dashboard
+│   │   ├── employee.html       # Employee dashboard
+│   │   ├── change_password.html # Change / reset password
+│   │   ├── forgot-password.html # Forgot password page
+│   │   └── index.html          # Landing / redirect page
+│   └── static/                 # Static assets (CSS, JS, images)
 ├── apache2/
-│   └── httpd.conf          # Apache reverse proxy config
+│   └── apache2.conf            # Apache reverse proxy config
 ├── lambda/
-│   └── lambda_function.py  # AWS Lambda function
+│   └── handler.py              # AWS Lambda function (S3 → SES notification)
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml      # GitHub Actions CI/CD
-├── docker-compose.yml      # Container orchestration
-├── Dockerfile              # Flask app container
-├── requirements.txt        # Python dependencies
-└── .env.example            # Environment template
+│       └── deploy.yml          # GitHub Actions CI/CD pipeline
+├── screenshots/                # Project screenshots
+├── docker-compose.yml          # Container orchestration (MySQL + Flask + Apache2)
+├── Dockerfile                  # Flask app container (Python 3.11-slim)
+├── requirements.txt            # Python dependencies
+├── .env.example                # Environment template
+├── .gitignore                  # Git ignore rules
+└── LICENSE                     # MIT License
 ```
 
 ---
@@ -259,5 +310,4 @@ flask-task-manager-devops/
 
 ---
 
-*Built as a DevOps portfolio project demonstrating end-to-end cloud deployment, containerization, CI/CD automation, and AWS managed services.*# flask-task-manager-devops
-Flask Task Manager with S3, Lambda, Apache2, Docker, GitHub Actions CI/CD — AWS DevOps Portfolio Project
+*Built as a DevOps portfolio project demonstrating end-to-end cloud deployment, containerization, CI/CD automation, role-based authentication, and AWS managed services.*
