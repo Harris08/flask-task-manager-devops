@@ -474,7 +474,7 @@ def approve_task(task_id):
             cur.execute("SELECT t.title, u.name, u.email FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE t.id=%s", (task_id,))
             row = cur.fetchone()
         with conn.cursor() as cur:
-            cur.execute("UPDATE tasks SET status='done' WHERE id=%s", (task_id,))
+            cur.execute("UPDATE tasks SET status='approved' WHERE id=%s", (task_id,))
         conn.commit()
         if row:
             email_task_approved(row['name'], row['email'], row['title'])

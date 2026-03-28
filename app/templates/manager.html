@@ -405,6 +405,8 @@
             <td>
               {% if task.status == 'done' %}
                 <span class="badge-done">✅ Done</span>
+              {% elif task.status == 'approved' %}
+                <span class="badge-done">✅ Approved</span>
               {% elif task.status == 'redo' %}
                 <span class="badge-redo">🔄 Redo</span>
               {% else %}
@@ -424,7 +426,7 @@
             </td>
             <td>
               <div class="d-flex gap-1 align-items-center">
-                {% if task.status == 'pending' %}
+                {% if task.status == 'done' %}
                 <a href="{{ url_for('approve_task', task_id=task.id) }}"
                    class="act-btn act-approve" title="Approve task">
                   <i class="bi bi-check-lg"></i>
