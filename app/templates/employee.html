@@ -288,6 +288,8 @@
             <span class="badge-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
           {% elif task.status == 'done' %}
             <span class="badge-done"><i class="bi bi-check-circle-fill me-1"></i>Done</span>
+          {% elif task.status == 'approved' %}
+            <span class="badge-done"><i class="bi bi-arrow-repeat me-1"></i>✅Approved</span>
           {% elif task.status == 'redo' %}
             <span class="badge-redo"><i class="bi bi-arrow-repeat me-1"></i>Redo</span>
           {% endif %}
@@ -307,7 +309,7 @@
 
       <div class="task-right">
         <div class="task-actions">
-          {% if task.status != 'done' %}
+          {% if task.status == 'pending' or task.status == 'redo' %}
             <!-- Upload file -->
             <button type="button" class="act-btn act-file"
               onclick="openUpload({{ task.id }}, '{{ task.title }}')">
