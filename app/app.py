@@ -59,7 +59,7 @@ def load_user(user_id):
             cur.execute("SELECT id, name, email, role, is_first_login FROM users WHERE id=%s", (user_id,))
             row = cur.fetchone()
             if row:
-                return User(*row)
+                return User(row['id'], row['name'], row['email'], row['role'], row['is_first_login'])
     finally:
         conn.close()
     return None
