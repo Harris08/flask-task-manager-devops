@@ -289,7 +289,7 @@
           {% elif task.status == 'done' %}
             <span class="badge-done"><i class="bi bi-check-circle-fill me-1"></i>Done</span>
           {% elif task.status == 'approved' %}
-            <span class="badge-done"><i class="bi bi-arrow-repeat me-1"></i>✅Approved</span>
+            <span class="badge-done"><i class="bi bi-check-circle-fill me-1"></i>✅Approved</span>
           {% elif task.status == 'redo' %}
             <span class="badge-redo"><i class="bi bi-arrow-repeat me-1"></i>Redo</span>
           {% endif %}
@@ -321,6 +321,10 @@
                onclick="return confirm('Mark \'{{ task.title }}\' as done?')">
               <i class="bi bi-check-lg"></i> Mark Done
             </a>
+          {% elif task.status == 'approved' %}
+            <span style="font-size:.78rem;color:#16a34a;font-style:italic;">
+              <i class="bi bi-check-circle-fill me-1"></i>Completed
+            </span>
           {% else %}
             <span style="font-size:.78rem;color:#94a3b8;font-style:italic;">
               <i class="bi bi-clock-history me-1"></i>Awaiting approval
