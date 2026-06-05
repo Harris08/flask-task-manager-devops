@@ -11,7 +11,7 @@
 
 A full-stack **role-based Task Manager web application** built with Flask, featuring user authentication, manager/employee workflows, AWS SES email notifications, S3 file storage, and deployed on AWS using DevOps best practices — Docker, CI/CD, serverless functions, and real-time monitoring.
 
-> 🔗 **Live App:** http://13.203.97.210
+> 🔗 **Live App:** http://13.200.242.101
 > 📦 **Repo:** https://github.com/Harris08/flask-task-manager-devops
 
 ---
