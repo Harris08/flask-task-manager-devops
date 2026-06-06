@@ -22,6 +22,7 @@ def lambda_handler(event, context):
 
         from_email = os.environ.get('SES_FROM_EMAIL', 'haarisraja08@gmail.com')
         to_email   = os.environ.get('SES_TO_EMAIL',   'haarisraja08@gmail.com')
+        app_url    = os.environ.get('APP_URL',        'http://3.108.125.6')
 
         html_body = f"""
         <div style="font-family:DM Sans,Arial,sans-serif;max-width:520px;margin:0 auto;
@@ -73,7 +74,7 @@ def lambda_handler(event, context):
               </table>
             </div>
 
-            <a href="http://13.203.97.210"
+            <a href="{app_url}"
                style="display:inline-block;
                       background:linear-gradient(135deg,#1d4ed8,#3b82f6);
                       color:#ffffff;text-decoration:none;

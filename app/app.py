@@ -3,7 +3,7 @@ import secrets
 import string
 import boto3
 from botocore.exceptions import ClientError
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, has_request_context
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user,
     login_required, current_user
@@ -133,6 +133,7 @@ def send_email(to_email, subject, html_body):
 
 
 def email_welcome(name, email, temp_password):
+    base_url = request.host_url.rstrip('/') if has_request_context() else 'http://3.108.125.6'
     html = f"""
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#fff;border:1.5px solid #dbeafe;border-radius:16px;overflow:hidden;">
       <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);padding:24px 28px;">
@@ -146,7 +147,7 @@ def email_welcome(name, email, temp_password):
           <p style="margin:0;font-size:14px;color:#0f172a;"><strong>Temp Password:</strong> <code style="background:#dbeafe;padding:2px 8px;border-radius:5px;color:#1d4ed8;">{temp_password}</code></p>
         </div>
         <p style="color:#dc2626;font-size:13px;font-weight:600;">⚠ You must change your password on first login.</p>
-        <a href="http://13.203.97.210" style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;margin-top:8px;">Sign In Now →</a>
+        <a href="{base_url}" style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;margin-top:8px;">Sign In Now →</a>
       </div>
       <div style="background:#f8faff;border-top:1px solid #dbeafe;padding:14px 28px;font-size:12px;color:#94a3b8;">Task Manager © 2026 · Powered by AWS</div>
     </div>"""
@@ -154,6 +155,7 @@ def email_welcome(name, email, temp_password):
 
 
 def email_task_assigned(emp_name, emp_email, task_title, task_desc):
+    base_url = request.host_url.rstrip('/') if has_request_context() else 'http://3.108.125.6'
     html = f"""
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#fff;border:1.5px solid #dbeafe;border-radius:16px;overflow:hidden;">
       <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);padding:24px 28px;">
@@ -166,7 +168,7 @@ def email_task_assigned(emp_name, emp_email, task_title, task_desc):
           <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#0f172a;">{task_title}</p>
           <p style="margin:0;font-size:13px;color:#64748b;">{task_desc or 'No description provided.'}</p>
         </div>
-        <a href="http://13.203.97.210" style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;">View My Tasks →</a>
+        <a href="{base_url}" style="display:inline-block;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;">View My Tasks →</a>
       </div>
       <div style="background:#f8faff;border-top:1px solid #dbeafe;padding:14px 28px;font-size:12px;color:#94a3b8;">Task Manager © 2026 · Powered by AWS</div>
     </div>"""
@@ -193,6 +195,7 @@ def email_task_approved(emp_name, emp_email, task_title):
 
 
 def email_task_redo(emp_name, emp_email, task_title):
+    base_url = request.host_url.rstrip('/') if has_request_context() else 'http://3.108.125.6'
     html = f"""
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#fff;border:1.5px solid #fda4af;border-radius:16px;overflow:hidden;">
       <div style="background:linear-gradient(135deg,#dc2626,#9f1239);padding:24px 28px;">
@@ -204,7 +207,7 @@ def email_task_redo(emp_name, emp_email, task_title):
         <div style="background:#fff1f2;border:1.5px solid #fda4af;border-radius:10px;padding:16px 20px;margin:20px 0;">
           <p style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">🔄 {task_title}</p>
         </div>
-        <a href="http://13.203.97.210" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#9f1239);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;margin-top:8px;">View Task →</a>
+        <a href="{base_url}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#9f1239);color:#fff;text-decoration:none;padding:10px 24px;border-radius:9px;font-weight:700;font-size:14px;margin-top:8px;">View Task →</a>
       </div>
       <div style="background:#f8faff;border-top:1px solid #dbeafe;padding:14px 28px;font-size:12px;color:#94a3b8;">Task Manager © 2026 · Powered by AWS</div>
     </div>"""
