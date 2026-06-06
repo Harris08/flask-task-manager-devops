@@ -137,6 +137,7 @@ celerybeat.pid
 # Environments
 .env
 .envrc
+credentials.txt
 .venv
 env/
 venv/
